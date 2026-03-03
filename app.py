@@ -382,14 +382,19 @@ Be direct and specific. Reference actual numbers. No generic advice."""
         resp = requests.post(OPENROUTER_URL,
             headers={'Authorization': f'Bearer {openrouter_key}', 'Content-Type': 'application/json', 'HTTP-Referer': 'valorant-analyzer', 'X-Title': 'Valorant Performance Analyzer'},
             json={'model': model, 'messages': [{'role': 'user', 'content': prompt}], 'max_tokens': 4000, 'temperature': 0.7},
-            timeout=60
+            timeout=120
         )
         if resp.status_code == 200:
             content = resp.json().get('choices', [{}])[0].get('message', {}).get('content', '')
             if content:
                 return content
+            print(f"[AI] Empty content in response: {resp.json()}")
+        else:
+            print(f"[AI] OpenRouter returned {resp.status_code}: {resp.text[:500]}")
+    except requests.exceptions.Timeout:
+        print("[AI] OpenRouter request timed out after 120s")
     except Exception as e:
-        pass
+        print(f"[AI] Exception during OpenRouter call: {type(e).__name__}: {e}")
     return None
 
 
@@ -570,7 +575,7 @@ def ai_analysis():
         ai_text = get_ai_analysis(openrouter_key, model, stats, matches, rank_str, peak_str, mmr_history or [])
 
         if not ai_text:
-            return jsonify({'error': 'OpenRouter API failed. Please check your API key and try again.'}), 500
+            return jsonify({'error': 'AI analysis unavailable — the OpenRouter request failed or timed out. Check your API key and try again.'}), 502
 
         ai_html = format_ai_html(ai_text)
 
