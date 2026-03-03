@@ -1,1 +1,1 @@
-web: gunicorn app:app -b 0.0.0.0:10000 --timeout 120 --preload
+web: python app.py

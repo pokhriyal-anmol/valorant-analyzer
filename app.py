@@ -658,4 +658,11 @@ Be specific, reference actual numbers from the match, and provide actionable fee
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    if os.environ.get('RENDER'):
+        from waitress import serve
+        print(f"Starting waitress on port {port}")
+        serve(app, host='0.0.0.0', port=port)
+    else:
+        app.run(host='0.0.0.0', port=port, debug=True)
